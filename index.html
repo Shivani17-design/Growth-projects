@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Growth opportunity board</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#F8F7F4;color:#2C2C2A;min-height:100vh;padding:2rem}
+h1{font-family:'Fraunces',serif;font-weight:700;font-size:28px;color:#26215C;margin-bottom:4px}
+.subtitle{font-size:14px;color:#888780;margin-bottom:2rem}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem}
+.filter-btn{font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 16px;border-radius:999px;border:1px solid #D3D1C7;background:#fff;color:#5F5E5A;cursor:pointer;transition:all .15s ease}
+.filter-btn:hover{border-color:#888780;color:#2C2C2A}
+.filter-btn.active{background:#534AB7;color:#fff;border-color:#534AB7}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid #ebe9e3}
+.stat-label{font-size:12px;color:#888780;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-val{font-size:26px;font-weight:600;color:#26215C}
+.cards{display:flex;flex-direction:column;gap:12px}
+.opp-card{background:#fff;border:1px solid #ebe9e3;border-radius:12px;padding:1.25rem 1.5rem;transition:all .2s ease;cursor:default}
+.opp-card:hover{border-color:#AFA9EC;box-shadow:0 2px 12px rgba(83,74,183,0.08)}
+.opp-title{font-weight:600;font-size:15px;color:#26215C}
+.opp-problem{font-size:13px;color:#888780;line-height:1.6;margin:8px 0 10px}
+.opp-intervention{font-size:13px;color:#2C2C2A;line-height:1.6;margin-bottom:12px}
+.opp-intervention strong{font-weight:500;color:#888780}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:500}
+.tag-effort-low{background:#EAF3DE;color:#3B6D11}
+.tag-effort-medium{background:#FAEEDA;color:#854F0B}
+.tag-effort-high{background:#FCEBEB;color:#A32D2D}
+.tag-reach-small{background:#F1EFE8;color:#5F5E5A}
+.tag-reach-medium{background:#E6F1FB;color:#185FA5}
+.tag-reach-large{background:#EEEDFE;color:#534AB7}
+.tag-neutral{background:#F1EFE8;color:#5F5E5A}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.card-badges{display:flex;gap:4px;flex-shrink:0}
+.empty{text-align:center;color:#888780;padding:3rem 0;font-size:14px;display:none}
+.theme-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;flex-shrink:0;position:relative;top:1px}
+.dot-feature{background:#534AB7}
+.dot-value{background:#D85A30}
+.dot-branding{background:#1D9E75}
+.dot-ai{background:#378ADD}
+.dot-global{background:#D4537E}
+.dot-automation{background:#BA7517}
+.dot-education{background:#639922}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.card-header{flex-direction:column}}
+.section-divider{border-top:2px solid #ebe9e3;margin-top:3rem;padding-top:2.5rem}
+.section-title{font-family:'Fraunces',serif;font-weight:700;font-size:24px;color:#26215C;margin-bottom:4px}
+.section-sub{font-size:14px;color:#888780;margin-bottom:1.5rem}
+.format-btn{font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 16px;border-radius:999px;border:1px solid #D3D1C7;background:#fff;color:#5F5E5A;cursor:pointer;transition:all .15s ease}
+.format-btn:hover{border-color:#888780;color:#2C2C2A}
+.format-btn.active{background:#D85A30;color:#fff;border-color:#D85A30}
+.mockup-frame{background:#F1EFE8;border-radius:12px;padding:20px;margin-top:12px}
+.mockup-inner{background:#fff;border-radius:12px;border:1px solid #ebe9e3;max-width:440px;margin:0 auto;overflow:hidden}
+.mockup-header-purple{background:#EEEDFE;padding:20px 24px}
+.mockup-header-green{background:#E1F5EE;padding:20px 24px;text-align:center}
+.mockup-body{padding:16px 24px}
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.metric-item{text-align:center}
+.metric-val{font-size:20px;font-weight:600;color:#26215C;margin:0}
+.metric-label{font-size:11px;color:#888780;margin:2px 0 0}
+.feature-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:6px;font-size:13px}
+.feature-active{background:#EAF3DE;color:#27500A}
+.feature-unused{background:#FAEEDA;color:#633806}
+.feature-locked{background:#F1EFE8;color:#888780;opacity:0.7}
+.feature-unlock{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ebe9e3;border-radius:10px;margin-bottom:6px;cursor:pointer}
+.feature-unlock:hover{border-color:#AFA9EC}
+.nudge-box{border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6}
+.nudge-amber{background:#FAEEDA;color:#854F0B}
+.nudge-green{background:#E1F5EE;color:#085041}
+.nudge-blue{background:#E6F1FB;color:#0C447C}
+.progress-bar{height:6px;background:#F1EFE8;border-radius:3px;margin-top:4px}
+.progress-fill{height:6px;border-radius:3px;background:#1D9E75}
+.comp-example{background:#fff;border:1px solid #ebe9e3;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
+.comp-example-title{font-weight:600;font-size:14px;color:#26215C;margin-bottom:4px}
+.comp-example-desc{font-size:13px;color:#888780;line-height:1.6}
+.comp-example-detail{font-size:13px;color:#2C2C2A;line-height:1.6;margin-top:8px;display:none}
+.comp-example-toggle{font-size:12px;color:#534AB7;cursor:pointer;margin-top:6px;display:inline-block}
+.adoption-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.adoption-chip{padding:7px 10px;border-radius:10px;font-size:12px;display:flex;align-items:center;gap:6px}
+.impact-row{display:flex;gap:10px;margin-top:14px}
+.impact-card{flex:1;background:#E1F5EE;border-radius:10px;padding:10px;text-align:center}
+.impact-val{font-size:18px;font-weight:600;color:#085041;margin:0}
+.impact-label{font-size:11px;color:#0F6E56;margin:2px 0 0}
+</style>
+</head>
+<body>
+<h1>Growth opportunity board</h1>
+<p class="subtitle">18 opportunities across 7 themes — filter by category to focus discussion</p>
+
+<div class="filters" id="filters"></div>
+<div class="stats" id="stats"></div>
+<div class="cards" id="cards"></div>
+<p class="empty" id="empty">No opportunities match this filter.</p>
+
+<script>
+const data=[
+{theme:"Feature Discovery & Activation",opp:"Feature adoption report card",problem:"Users don't know what they've used vs missed — leads to underutilization and missed upgrades",intervention:"Show 'You've used X, you haven't tried Y' report after trial / periodically",users:"Trial + paid users",goal:"Increase feature adoption, upgrades, retention",effort:"Medium",type:"Product",reach:"Large",hint:""},
+{theme:"Feature Discovery & Activation",opp:"Goal-based onboarding questionnaire",problem:"Users don't know which features are relevant to their goals",intervention:"Ask users what they want to achieve and recommend features + setup path",users:"New users",goal:"Faster activation, better feature discovery",effort:"Medium",type:"Product",reach:"Large",hint:"Ref: HubSpot 'Tailor your experience' + 'What tools do you use?' onboarding"},
+{theme:"Feature Discovery & Activation",opp:"Post-upgrade onboarding",problem:"Users upgrade for a single feature but don't explore other capabilities",intervention:"Introduce post-upgrade onboarding highlighting newly unlocked features",users:"Recently upgraded users",goal:"Increase multi-feature adoption and retention",effort:"Low",type:"No-code experiment → Product",reach:"Large",hint:"Ref: Canva Pro welcome screen, Slack Pro feature highlight"},
+{theme:"Value Storytelling & Upgrade Narrative",opp:"Case study-driven feature storytelling",problem:"Users struggle to understand the real-world value of advanced features",intervention:"Publish case studies showing how features enable business growth",users:"Prospects and trial users",goal:"Improve upgrade motivation",effort:"Medium",type:"Marketing",reach:"Large",hint:""},
+{theme:"Value Storytelling & Upgrade Narrative",opp:"Improving feature storytelling on marketing pages",problem:"Feature discoverability issue on marketing site",intervention:"Allow users to test/see features directly on teachable.com",users:"New users",goal:"Increase trial activations",effort:"Medium",type:"Marketing",reach:"Large",hint:"Ref: Webflow interactive product demo on marketing site"},
+{theme:"Feature Discovery & Activation",opp:"Feature awareness during signup",problem:"Users begin trials without understanding the platform's capabilities",intervention:"Add feature carousel or testimonials to the signup experience",users:"New trial users",goal:"Increase trial activation and conversion",effort:"Low",type:"Product",reach:"Medium",hint:"Ref: Webflow sign-up page with feature showcase + social proof"},
+{theme:"AI Chatbot as Feature Discovery Assistant",opp:"Chatbot as product assistant",problem:"Users don't know where/how to learn features",intervention:"In-product AI help for feature discovery",users:"All users",goal:"↑ Self-serve discovery, ↓ support",effort:"High",type:"Product + Support",reach:"Large",hint:"Ref: HubSpot sales agent chat, Intercom AI assistant"},
+{theme:"Branding & Customization",opp:"Branding feature bundle upsell",problem:"Branding features are fragmented, not positioned as cohesive value",intervention:"Bundle custom domain, white-labeling, certificates into clear upgrade story",users:"Growing creators / KBs",goal:"Increase Growth plan upgrades",effort:"Medium",type:"Product + Marketing",reach:"Medium",hint:""},
+{theme:"Feature Education & Terminology Simplification",opp:"Simplify feature language",problem:"Users don't understand feature value due to complex terminology",intervention:"Simplify language across product and pricing",users:"All users",goal:"↑ Comprehension, ↑ adoption",effort:"Low",type:"Product + Content",reach:"Medium",hint:""},
+{theme:"Feature Discovery & Activation",opp:"Feature discovery nudges",problem:"Users create manual workflows not knowing native features exist",intervention:"Detect behavioral signals and recommend native features",users:"Knowledge businesses",goal:"Increase feature adoption and upgrades",effort:"High",type:"Product + Data",reach:"Medium",hint:"Ref: Google Chat 'Find the perfect app' contextual nudge"},
+{theme:"Global Expansion & Translation",opp:"Translation feature discovery",problem:"Translation functionality is underutilized and hard to find",intervention:"Highlight translation features in product UI and upgrade messaging",users:"Global creators",goal:"Increase feature usage and upgrades",effort:"Low",type:"Product",reach:"Medium-Large",hint:""},
+{theme:"Global Expansion & Translation",opp:"Global school setup guidance",problem:"Creators want to scale globally but lack multilingual guidance",intervention:"Provide onboarding guidance for multilingual courses",users:"Global creators",goal:"Increase international course creation",effort:"Medium",type:"Product + Content",reach:"Medium",hint:""},
+{theme:"Automation & Integrations",opp:"API and automation awareness",problem:"Advanced creators rely on external tools, unaware of integrations",intervention:"Educate users on API and integration capabilities",users:"Advanced creators",goal:"Increase integration adoption",effort:"Low",type:"Marketing + Product",reach:"Large",hint:""},
+{theme:"Branding & Customization",opp:"Branding preview before upgrade",problem:"Users only realize branding value after upgrading",intervention:"Allow branding experiments during trial, require upgrade to publish",users:"Trial users",goal:"Increase trial → paid conversion",effort:"High",type:"Product experiment",reach:"Small",hint:""},
+{theme:"Automation & Integrations",opp:"Workflow automation templates",problem:"Creators build manual operational processes",intervention:"Provide templates for certificates, enrollments, and email automations",users:"Scaling schools",goal:"Reduce manual workflows",effort:"Medium",type:"Product",reach:"Medium-Large",hint:""},
+{theme:"Branding & Customization",opp:"Homepage & navigation customization",problem:"Professional schools want more control over platform look and navigation",intervention:"Deeper homepage customization and learning stream navigation",users:"Program distributors / professional schools",goal:"Improve platform adoption for professional training",effort:"High",type:"Product",reach:"Medium",hint:""},
+{theme:"Branding & Customization",opp:"Custom certificate builder improvements",problem:"Users rely on external tools for branded certificates",intervention:"Improve built-in certificate customization options",users:"Professional educators",goal:"Increase adoption, reduce external tool reliance",effort:"Medium",type:"Product",reach:"Medium",hint:""},
+{theme:"Feature Discovery & Activation",opp:"Admin add-ons visibility",problem:"Users unaware they can add admin seats without full upgrade",intervention:"Add 'Add Admin' CTA to billing page and admin table",users:"Teams using Teachable",goal:"Increase admin add-on purchases",effort:"Low",type:"Product",reach:"Medium",hint:""}
+];
+
+const themes=[
+{name:"Feature Discovery & Activation",label:"Feature discovery",dot:"dot-feature"},
+{name:"Value Storytelling & Upgrade Narrative",label:"Value storytelling",dot:"dot-value"},
+{name:"Branding & Customization",label:"Branding",dot:"dot-branding"},
+{name:"AI Chatbot as Feature Discovery Assistant",label:"AI chatbot",dot:"dot-ai"},
+{name:"Global Expansion & Translation",label:"Global expansion",dot:"dot-global"},
+{name:"Automation & Integrations",label:"Automation",dot:"dot-automation"},
+{name:"Feature Education & Terminology Simplification",label:"Feature education",dot:"dot-education"}
+];
+
+let currentFilter="all";
+
+function dotClass(theme){const t=themes.find(x=>x.name===theme);return t?t.dot:"dot-feature";}
+function effortClass(e){const l=e.toLowerCase();if(l.includes("low"))return"tag-effort-low";if(l.includes("high"))return"tag-effort-high";return"tag-effort-medium";}
+function reachClass(r){if(!r)return"tag-reach-medium";const l=r.toLowerCase();if(l==="small")return"tag-reach-small";if(l.includes("large"))return"tag-reach-large";return"tag-reach-medium";}
+
+function buildFilters(){
+  let html=`<button class="filter-btn active" data-filter="all">All themes</button>`;
+  themes.forEach(t=>{html+=`<button class="filter-btn" data-filter="${t.name}"><span class="theme-dot ${t.dot}"></span>${t.label}</button>`;});
+  document.getElementById("filters").innerHTML=html;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{currentFilter=b.dataset.filter;document.querySelectorAll(".filter-btn").forEach(x=>x.classList.toggle("active",x.dataset.filter===currentFilter));render();}));
+}
+
+function render(){
+  const filtered=currentFilter==="all"?data:data.filter(d=>d.theme===currentFilter);
+  const lowCount=filtered.filter(d=>d.effort.toLowerCase().includes("low")).length;
+  const largeCount=filtered.filter(d=>d.reach&&d.reach.toLowerCase().includes("large")).length;
+  const themeCount=new Set(filtered.map(d=>d.theme)).size;
+
+  document.getElementById("stats").innerHTML=`
+    <div class="stat-card"><p class="stat-label">Opportunities</p><p class="stat-val">${filtered.length}</p></div>
+    <div class="stat-card"><p class="stat-label">Themes</p><p class="stat-val">${themeCount}</p></div>
+    <div class="stat-card"><p class="stat-label">Low effort</p><p class="stat-val">${lowCount}</p></div>
+    <div class="stat-card"><p class="stat-label">Large reach</p><p class="stat-val">${largeCount}</p></div>
+  `;
+
+  if(filtered.length===0){document.getElementById("cards").innerHTML="";document.getElementById("empty").style.display="block";return;}
+  document.getElementById("empty").style.display="none";
+
+  document.getElementById("cards").innerHTML=filtered.map((d,i)=>`
+    <div class="opp-card">
+      <div class="card-header">
+        <div style="display:flex;align-items:center"><span class="theme-dot ${dotClass(d.theme)}"></span><span class="opp-title">${d.opp}</span></div>
+        <div class="card-badges">
+          ${d.effort?`<span class="tag ${effortClass(d.effort)}">${d.effort} effort</span>`:""}
+          ${d.reach?`<span class="tag ${reachClass(d.reach)}">${d.reach} reach</span>`:""}
+        </div>
+      </div>
+      <p class="opp-problem">${d.problem}</p>
+      <p class="opp-intervention"><strong>Intervention:</strong> ${d.intervention}</p>
+      <div class="tags">
+        <span class="tag tag-neutral">${d.users}</span>
+        <span class="tag tag-neutral">${d.type}</span>
+        <span class="tag tag-neutral">${d.goal}</span>
+      </div>
+      ${d.opp==="Feature adoption report card"?`
+      <div style="margin-top:14px;border-top:1px solid #ebe9e3;padding-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleDeepDive()">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:#D85A30;color:#fff;font-size:11px;font-weight:600;text-align:center;line-height:20px;">!</span>
+            <span style="font-size:13px;font-weight:600;color:#D85A30;">Concept exploration — competitor examples & mockups</span>
+          </div>
+          <span id="dd-chevron" style="font-size:16px;color:#D85A30;transition:transform .2s">▾</span>
+        </div>
+        <div id="deep-dive" style="display:none;margin-top:14px"></div>
+      </div>
+      `:''}
+      <div class="opp-screenshots" data-opp="${d.opp}"></div>
+    </div>
+  `).join("");
+
+  var oppScreenshots = {
+    "Feature awareness during signup": [
+      {file:"img/teachable-signup.jpg",label:"Teachable — current sign-up flow"},
+      {file:"img/webflow-signup.jpg",label:"Webflow — sign-up page"},
+    ],
+    "Improving feature storytelling on marketing pages": [
+      {file:"img/figma-demo.jpg",label:"Figma — interactive product demo"},
+    ],
+    "Feature adoption report card": [
+      {file:"img/slack-feature-report.jpg",label:"Slack — Pro feature usage report"},
+    ],
+    "Post-upgrade onboarding": [
+      {file:"img/hubspot-explore.jpg",label:"HubSpot — Explore your features"},
+      {file:"img/asana-trial.jpg",label:"Asana — trial welcome screen"},
+      {file:"img/slack-pro-welcome.jpg",label:"Slack — Start with Slack Pro"},
+      {file:"img/canva-pro-welcome.jpg",label:"Canva — Welcome to Canva Pro"},
+    ],
+    "Goal-based onboarding questionnaire": [
+      {file:"img/gohighlevel-onboarding.jpg",label:"GoHighLevel — platform questionnaire"},
+      {file:"img/hubspot-tools.jpg",label:"HubSpot — What tools do you use"},
+      {file:"img/airtable-onboarding.jpg",label:"Airtable — goal-based onboarding"},
+      {file:"img/airtable-catalog.jpg",label:"Airtable — AI course catalog"},
+    ],
+    "Chatbot as product assistant": [
+      {file:"img/hubspot-chatbot.jpg",label:"HubSpot — chatbot sales agent"},
+      {file:"img/ai-chatbot.jpg",label:"AI chatbot — discovery assistant"},
+    ],
+    "Feature discovery nudges": [
+      {file:"img/google-chat-nudge.jpg",label:"Google Chat — Find the perfect app"},
+    ],
+  };
+  document.querySelectorAll('.opp-screenshots').forEach(function(el){
+    var opp = el.getAttribute('data-opp');
+    var shots = oppScreenshots[opp];
+    if(shots && shots.length > 0){
+      var h = '<div style="margin-top:12px;border-top:1px solid #ebe9e3;padding-top:12px"><p style="font-size:12px;color:#888780;margin:0 0 8px">Competitor references</p><div style="display:flex;gap:8px;flex-wrap:wrap">';
+      for(var j=0;j<shots.length;j++){
+        h += '<div style="flex:0 0 calc(50% - 4px);max-width:calc(50% - 4px)"><img src="'+shots[j].file+'" style="width:100%;border-radius:8px;border:1px solid #ebe9e3;display:block"><p style="font-size:11px;color:#888780;margin:4px 0 0;line-height:1.4">'+shots[j].label+'</p></div>';
+      }
+      h += '</div></div>';
+      el.innerHTML = h;
+    } else {
+      el.remove();
+    }
+  });
+
+  if(document.getElementById('deep-dive') && !document.getElementById('deep-dive').dataset.loaded){
+    document.getElementById('deep-dive').dataset.loaded='1';
+    buildDeepDive();
+  }
+}
+
+buildFilters();
+render();
+
+const competitors = [
+  {
+    name: "Kajabi",
+    position: "All-in-one premium platform",
+    price: "From $69/mo (kickstarter) to $319/mo (pro)",
+    strengths: [
+      { area: "Onboarding", detail: "Goal-based setup wizard that asks what you want to build, then tailors the dashboard and recommended next steps accordingly" },
+      { area: "Branded mobile app", detail: "Fully white-labeled mobile app ($199/mo add-on or included on Pro) with custom home screens, onboarding carousels, and push notifications" },
+      { area: "Feature bundling", detail: "Branding, automation, email, funnels, and community all packaged into a single platform — no external tools needed" },
+      { area: "Post-upgrade experience", detail: "Welcome screens and onboarding carousels highlight newly unlocked capabilities after plan changes" },
+      { area: "Automation & pipelines", detail: "Built-in visual automation builder for email sequences, tagging, enrollment triggers, and sales funnels" },
+      { area: "Community", detail: "Redesigned communities with custom branding, dark/light mode, leaderboards, and drag-and-drop navigation" }
+    ],
+    weaknesses: ["Premium pricing limits accessibility for new creators", "Branded app requires additional $199/mo on most plans", "Steeper learning curve due to feature density"],
+    relevantOpps: ["Goal-based onboarding questionnaire", "Post-upgrade onboarding", "Branding feature bundle upsell", "Homepage & navigation customization"]
+  },
+  {
+    name: "Thinkific",
+    position: "Course-focused platform with enterprise capabilities",
+    price: "From $36/mo to custom enterprise pricing",
+    strengths: [
+      { area: "Feature discovery", detail: "App marketplace with 80+ integrations surfaced contextually; guided 5-step blueprint for new course creators" },
+      { area: "Branding & customization", detail: "Prebuilt themes, custom branding on login/sales URLs, and removal of platform branding on mid-tier plans" },
+      { area: "AI-powered re-engagement", detail: "AI tools that automatically re-engage dormant learners and personalize outreach based on user behavior" },
+      { area: "Mobile app", detail: "Push notifications, drip release alerts, and community access via mobile app (add-on at $199/mo)" },
+      { area: "Analytics", detail: "Student-level analytics, video retention reports, and advanced data insights for course optimization" },
+      { area: "Community", detail: "Threaded discussions, mentions, post reactions, and expanded community features integrated with courses" }
+    ],
+    weaknesses: ["Mobile app only as expensive add-on", "No built-in email marketing — relies on integrations", "Interface can feel cluttered with features tucked in hard-to-find places"],
+    relevantOpps: ["Feature discovery nudges", "Translation feature discovery", "API and automation awareness"]
+  },
+  {
+    name: "Podia",
+    position: "Simple all-in-one for solo creators",
+    price: "From $33/mo + 5% tx fee to $75/mo (no tx fee)",
+    strengths: [
+      { area: "Simplicity", detail: "Extremely fast setup — create account, name product, publish. Minimal learning curve by design" },
+      { area: "Built-in email", detail: "Native email marketing with broadcasts, drip campaigns, templates, and basic automation included in all plans" },
+      { area: "All-in-one bundling", detail: "Courses, memberships, downloads, coaching, webinars, community, and email all from a single dashboard" },
+      { area: "Feature language", detail: "Uses plain, approachable terminology throughout — avoids jargon that confuses non-technical creators" },
+      { area: "Support", detail: "Dedicated support agent and group strategy calls on top-tier plan; live chat available on all plans" }
+    ],
+    weaknesses: ["No native mobile app at all", "Features are broad but shallow — lacks depth for advanced use cases", "Limited customization and design options", "Community is separate from course experience"],
+    relevantOpps: ["Simplify feature language", "Feature awareness during signup", "Workflow automation templates"]
+  },
+  {
+    name: "LearnWorlds",
+    position: "Interactive learning with enterprise features",
+    price: "From $29/mo to custom pricing",
+    strengths: [
+      { area: "Interactive learning", detail: "In-video questions, auto-generated transcripts/subtitles, SCORM/HTML5 support, and interactive video player" },
+      { area: "Certificates", detail: "Built-in custom certificate builder with advanced design options — no external tools needed" },
+      { area: "Automation", detail: "Automated onboarding flows, access rules, enrollment triggers, and compliance workflows" },
+      { area: "Multi-school", detail: "Clone & Sync feature to replicate courses across schools — ideal for multilingual or multi-brand setups" },
+      { area: "Upgrade paths", detail: "Built-in upgrade path tools that guide learners to higher-value plans with clear upsell moments" },
+      { area: "Analytics", detail: "Self-serve progress views, certification tracking, and conversion/revenue analytics dashboards" }
+    ],
+    weaknesses: ["No free tier; basic plan limited to 3 web pages", "Higher learning curve for non-technical users", "Premium features locked to expensive plans"],
+    relevantOpps: ["Custom certificate builder improvements", "Global school setup guidance", "Branding preview before upgrade"]
+  },
+  {
+    name: "Mighty Networks",
+    position: "Community-first course platform",
+    price: "From $41/mo to custom pricing",
+    strengths: [
+      { area: "Community-led discovery", detail: "AI-powered member introductions, automated engagement flows, and gamification with challenges and leaderboards" },
+      { area: "Branded mobile app", detail: "Native branded mobile apps included on higher plans — separate apps for iOS and Android" },
+      { area: "Live engagement", detail: "Native live courses, events, and real-time community interaction built into the core product" },
+      { area: "Bundling", detail: "Courses, events, live sessions, and community bundled into single offers with flexible pricing" },
+      { area: "AI features", detail: "AI course outlines, content generators, quiz builders, and automated community growth tools" }
+    ],
+    weaknesses: ["Less mature as a pure course platform", "Premium pricing for full feature access", "Fewer marketing and sales funnel tools compared to Kajabi"],
+    relevantOpps: ["Chatbot as product assistant", "Post-upgrade onboarding", "Feature adoption report card"]
+  },
+  {
+    name: "Skool",
+    position: "Gamified community + courses",
+    price: "$99/mo flat",
+    strengths: [
+      { area: "Gamification", detail: "Points, levels, and leaderboards that make learning and community engagement feel like a game" },
+      { area: "Simplicity", detail: "Extremely simple interface — intentionally limited features to reduce decision fatigue" },
+      { area: "Community-first", detail: "Community and courses tightly integrated; discussions happen alongside course content" },
+      { area: "Affiliate system", detail: "Built-in affiliate tools that incentivize member referrals and organic growth" }
+    ],
+    weaknesses: ["Very limited customization and branding options", "No email marketing, automations, or advanced funnels", "Single flat price regardless of needs", "No certificates, downloads, or coaching features"],
+    relevantOpps: ["Feature adoption report card", "Simplify feature language"]
+  }
+];
+
+const compSection = document.createElement('div');
+compSection.id = 'competitor-section';
+compSection.innerHTML = `
+  <div style="border-top:2px solid #ebe9e3;margin-top:3rem;padding-top:2.5rem">
+    <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:24px;color:#26215C;margin-bottom:4px">Competitor landscape</h2>
+    <p style="font-size:14px;color:#888780;margin-bottom:1.5rem">How key competitors handle the features mapped to your opportunity areas</p>
+    <div id="comp-cards" style="display:flex;flex-direction:column;gap:16px"></div>
+  </div>
+`;
+document.querySelector('body').appendChild(compSection);
+
+function renderCompetitors(){
+  const container = document.getElementById('comp-cards');
+  container.innerHTML = competitors.map((c,ci)=>`
+    <div class="opp-card" style="cursor:pointer" onclick="toggleComp(${ci})">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <span style="font-weight:600;font-size:16px;color:#26215C">${c.name}</span>
+          <span style="font-size:13px;color:#888780;margin-left:8px">${c.position}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="tag tag-neutral">${c.price}</span>
+          <span id="chevron-${ci}" style="font-size:18px;color:#B4B2A9;transition:transform .2s">▾</span>
+        </div>
+      </div>
+      <div id="comp-detail-${ci}" style="display:none;margin-top:16px">
+        <div style="margin-bottom:16px">
+          <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#534AB7;font-weight:600;margin-bottom:10px">Strengths</p>
+          ${c.strengths.map(s=>`
+            <div style="margin-bottom:10px;padding-left:12px;border-left:2px solid #EAF3DE">
+              <p style="font-size:13px;font-weight:600;color:#3B6D11;margin:0">${s.area}</p>
+              <p style="font-size:13px;color:#5F5E5A;margin:2px 0 0;line-height:1.5">${s.detail}</p>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-bottom:16px">
+          <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#A32D2D;font-weight:600;margin-bottom:10px">Weaknesses / gaps</p>
+          <div style="padding-left:12px;border-left:2px solid #FCEBEB">
+            ${c.weaknesses.map(w=>`<p style="font-size:13px;color:#791F1F;margin:0 0 4px;line-height:1.5">— ${w}</p>`).join('')}
+          </div>
+        </div>
+        <div>
+          <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#185FA5;font-weight:600;margin-bottom:8px">Relevant Teachable opportunities</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${c.relevantOpps.map(o=>`<span class="tag" style="background:#E6F1FB;color:#185FA5">${o}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleComp(idx){
+  const detail = document.getElementById('comp-detail-'+idx);
+  const chevron = document.getElementById('chevron-'+idx);
+  if(detail.style.display==='none'){
+    detail.style.display='block';
+    chevron.style.transform='rotate(180deg)';
+  } else {
+    detail.style.display='none';
+    chevron.style.transform='rotate(0deg)';
+  }
+}
+
+renderCompetitors();
+
+var ddFormat=0;
+
+
+function toggleDeepDive(){
+  const dd=document.getElementById('deep-dive');
+  const ch=document.getElementById('dd-chevron');
+  if(dd.style.display==='none'){dd.style.display='block';ch.style.transform='rotate(180deg)';}
+  else{dd.style.display='none';ch.style.transform='rotate(0deg)';}
+}
+
+function setDDFormat(idx){
+  ddFormat=idx;
+  document.querySelectorAll('.dd-fmt-btn').forEach((b,j)=>{b.classList.toggle('active',j===idx);});
+  renderDDFormat();
+}
+
+function renderDDFormat(){
+  const mockups=[
+    {title:"Weekly email digest",ref:"Grammarly weekly insights",desc:"A short recurring email showing activity, value delivered, and one feature nudge. Lowest effort to implement — uses existing analytics data.",html:`
+<div class="mockup-frame"><div class="mockup-inner">
+<div style="padding:20px 24px 16px;border-bottom:1px solid #ebe9e3">
+<p style="font-size:12px;color:#888780;margin:0 0 2px">Your week on Teachable</p>
+<p style="font-size:18px;font-weight:600;color:#26215C;margin:0">March 10 – 16</p>
+</div>
+<div class="mockup-body">
+<div class="metric-row">
+<div class="metric-item"><p class="metric-val" style="color:#0F6E56">$2,340</p><p class="metric-label">Revenue</p></div>
+<div class="metric-item"><p class="metric-val" style="color:#0F6E56">+38</p><p class="metric-label">New students</p></div>
+<div class="metric-item"><p class="metric-val" style="color:#0F6E56">72%</p><p class="metric-label">Completion</p></div>
+</div>
+<div class="nudge-box nudge-amber"><p style="font-weight:600;font-size:12px;margin:0 0 4px">Did you know?</p>You had 12 abandoned checkouts this week. Creators using order bumps recover 18% more revenue. <u>Set up order bumps →</u></div>
+<div class="nudge-box nudge-green"><p style="font-weight:600;font-size:12px;margin:0 0 4px">Your streak</p>6 consecutive weeks of growth. You're in the top 15% of Teachable creators.</div>
+</div></div></div>`},
+    {title:"Monthly report card",ref:"HubSpot year-end stats + Spotify Wrapped",desc:"A richer monthly recap combining usage stats, feature attribution, peer comparison, and a clear 'features you haven't explored' section.",html:`
+<div class="mockup-frame"><div class="mockup-inner">
+<div class="mockup-header-purple">
+<p style="font-size:12px;color:#534AB7;margin:0 0 2px">March report card</p>
+<p style="font-size:18px;font-weight:600;color:#26215C;margin:0 0 12px">Sarah's yoga academy</p>
+<div style="display:flex;gap:8px">
+<div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:600;color:#26215C;margin:0">$9.2k</p><p style="font-size:11px;color:#534AB7;margin:2px 0 0">Revenue (+12%)</p></div>
+<div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:600;color:#26215C;margin:0">142</p><p style="font-size:11px;color:#534AB7;margin:2px 0 0">New students</p></div>
+<div style="flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:600;color:#26215C;margin:0">5/12</p><p style="font-size:11px;color:#534AB7;margin:2px 0 0">Features used</p></div>
+</div>
+</div>
+<div class="mockup-body">
+<p style="font-size:12px;color:#888780;margin:0 0 8px">Revenue by feature</p>
+<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Email marketing</span><span style="color:#0F6E56;font-weight:600">$3,400</span></div><div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div></div>
+<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Coupons</span><span style="color:#0F6E56;font-weight:600">$2,100</span></div><div class="progress-bar"><div class="progress-fill" style="width:55%"></div></div></div>
+<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Coaching</span><span style="color:#0F6E56;font-weight:600">$1,800</span></div><div class="progress-bar"><div class="progress-fill" style="width:42%"></div></div></div>
+<div style="border-top:1px solid #ebe9e3;padding-top:12px">
+<p style="font-size:12px;color:#854F0B;margin:0 0 8px">Included in your plan — not yet explored</p>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<span style="font-size:12px;padding:4px 10px;background:#FAEEDA;color:#633806;border-radius:999px">Certificates</span>
+<span style="font-size:12px;padding:4px 10px;background:#FAEEDA;color:#633806;border-radius:999px">Order bumps</span>
+<span style="font-size:12px;padding:4px 10px;background:#FAEEDA;color:#633806;border-radius:999px">Affiliates</span>
+<span style="font-size:12px;padding:4px 10px;background:#FAEEDA;color:#633806;border-radius:999px">Integrations</span>
+</div></div>
+</div></div></div>`},
+    {title:"In-product dashboard widget",ref:"Userpilot feature engagement + Kajabi analytics",desc:"A persistent widget inside the Teachable admin home showing adoption progress and nudging toward unused features with a suggested next action.",html:`
+<div style="background:#fff;border:1px solid #ebe9e3;border-radius:12px;max-width:480px;padding:20px 24px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<div><p style="font-size:16px;font-weight:600;color:#26215C;margin:0">Feature adoption</p><p style="font-size:12px;color:#888780;margin:2px 0 0">5 of 12 features active on your plan</p></div>
+<div style="width:48px;height:48px;border-radius:50%;border:3px solid #1D9E75;border-right-color:#ebe9e3;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:600;color:#26215C">42%</span></div>
+</div>
+<div class="adoption-grid">
+<div class="adoption-chip feature-active"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#639922"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>Courses</div>
+<div class="adoption-chip feature-active"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#639922"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>Emails</div>
+<div class="adoption-chip feature-active"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#639922"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>Coaching</div>
+<div class="adoption-chip feature-active"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#639922"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>Coupons</div>
+<div class="adoption-chip feature-active"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#639922"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>Domain</div>
+<div class="adoption-chip feature-unused"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#BA7517" stroke-width="1.2"/></svg>Certificates</div>
+<div class="adoption-chip feature-unused"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#BA7517" stroke-width="1.2"/></svg>Order bumps</div>
+<div class="adoption-chip feature-unused"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#BA7517" stroke-width="1.2"/></svg>Affiliates</div>
+<div class="adoption-chip feature-unused"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#BA7517" stroke-width="1.2"/></svg>Integrations</div>
+<div class="adoption-chip feature-locked"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="2" fill="none" stroke="#888780" stroke-width="1"/></svg>White-label</div>
+</div>
+<div class="nudge-box nudge-blue">Suggested next: <strong>Set up certificates</strong> — takes ~5 min and boosts completion rates by 23%</div>
+</div>`},
+    {title:"Post-upgrade unlock screen",ref:"Canva Pro welcome + Slack Pro feature list",desc:"Shown immediately after a plan upgrade to highlight all newly available capabilities. Reframes upgrades as 'capability unlock moments' rather than pricing changes.",html:`
+<div class="mockup-frame"><div class="mockup-inner">
+<div class="mockup-header-green">
+<svg width="32" height="32" viewBox="0 0 32 32" style="margin-bottom:8px"><circle cx="16" cy="16" r="14" fill="#1D9E75"/><path d="M10 16l4 4 8-8" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<p style="font-size:18px;font-weight:600;color:#085041;margin:0 0 4px">Welcome to Growth</p>
+<p style="font-size:13px;color:#0F6E56;margin:0">You just unlocked 7 new capabilities</p>
+</div>
+<div class="mockup-body">
+<p style="font-size:12px;color:#888780;margin:0 0 10px">New on your plan</p>
+<div class="feature-unlock"><div style="width:28px;height:28px;border-radius:10px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l2 4 4 .5-3 3 .7 4.5L7 11l-3.7 2 .7-4.5-3-3L5 5z" fill="#534AB7"/></svg></div><div style="flex:1"><p style="font-size:13px;font-weight:600;color:#26215C;margin:0">White-labeling</p><p style="font-size:11px;color:#888780;margin:2px 0 0">Remove Teachable branding</p></div><span style="font-size:11px;color:#534AB7">Set up →</span></div>
+<div class="feature-unlock"><div style="width:28px;height:28px;border-radius:10px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="3" width="12" height="8" rx="1" fill="none" stroke="#534AB7" stroke-width="1.2"/><path d="M1 5h12" stroke="#534AB7" stroke-width="1.2"/></svg></div><div style="flex:1"><p style="font-size:13px;font-weight:600;color:#26215C;margin:0">Custom certificates</p><p style="font-size:11px;color:#888780;margin:2px 0 0">Brand your completion awards</p></div><span style="font-size:11px;color:#534AB7">Set up →</span></div>
+<div class="feature-unlock"><div style="width:28px;height:28px;border-radius:10px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="#534AB7" stroke-width="1.2"/><path d="M7 4v3l2 2" stroke="#534AB7" stroke-width="1.2" stroke-linecap="round"/></svg></div><div style="flex:1"><p style="font-size:13px;font-weight:600;color:#26215C;margin:0">Advanced reports</p><p style="font-size:11px;color:#888780;margin:2px 0 0">Revenue and student analytics</p></div><span style="font-size:11px;color:#534AB7">Explore →</span></div>
+<div class="feature-unlock"><div style="width:28px;height:28px;border-radius:10px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7h8M7 3v8" stroke="#534AB7" stroke-width="1.2" stroke-linecap="round"/></svg></div><div style="flex:1"><p style="font-size:13px;font-weight:600;color:#26215C;margin:0">+4 more features</p><p style="font-size:11px;color:#888780;margin:2px 0 0">Affiliates, API, bulk actions, roles</p></div><span style="font-size:11px;color:#534AB7">See all →</span></div>
+<div style="background:#F1EFE8;border-radius:10px;padding:10px 14px;font-size:12px;color:#888780;line-height:1.5;text-align:center;margin-top:12px">Creators who activate 3+ Growth features in their first week see 34% higher retention</div>
+</div></div></div>`}
+  ];
+
+  const m=mockups[ddFormat];
+  const panel=document.getElementById('dd-format-panel');
+  if(!panel||!m)return;
+  panel.innerHTML=`
+    <p style="font-size:11px;color:#888780;font-style:italic;margin:0 0 4px">Inspired by: ${m.ref}</p>
+    <p style="font-size:13px;color:#5F5E5A;line-height:1.6;margin:0 0 12px">${m.desc}</p>
+    ${m.html}
+  `;
+}
+
+function toggleDDComp(idx){}
+
+function buildDeepDive(){
+  const dd=document.getElementById('deep-dive');
+  dd.innerHTML=`
+    <p style="font-size:14px;font-weight:600;color:#26215C;margin:0 0 4px">Teachable format mockups</p>
+    <p style="font-size:13px;color:#888780;margin:0 0 12px">Four implementation patterns — click to switch</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      <button class="dd-fmt-btn format-btn active" onclick="setDDFormat(0)">Weekly email</button>
+      <button class="dd-fmt-btn format-btn" onclick="setDDFormat(1)">Monthly recap</button>
+      <button class="dd-fmt-btn format-btn" onclick="setDDFormat(2)">In-product widget</button>
+      <button class="dd-fmt-btn format-btn" onclick="setDDFormat(3)">Post-upgrade</button>
+    </div>
+    <div id="dd-format-panel"></div>
+
+    <div style="margin-top:1.5rem;background:#EEEDFE;border-radius:12px;padding:16px 20px">
+      <p style="font-size:14px;font-weight:600;color:#26215C;margin:0 0 8px">Recommended implementation path</p>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#534AB7;color:#fff;font-size:11px;font-weight:600;flex-shrink:0">1</span>
+        <p style="font-size:13px;color:#26215C;line-height:1.5;margin:0"><strong>No-code experiment:</strong> Weekly email via lifecycle tool (Pendo/Customer.io) using existing analytics data.</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#534AB7;color:#fff;font-size:11px;font-weight:600;flex-shrink:0">2</span>
+        <p style="font-size:13px;color:#26215C;line-height:1.5;margin:0"><strong>Validate:</strong> If email drives activation, add in-product dashboard widget to admin home.</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#534AB7;color:#fff;font-size:11px;font-weight:600;flex-shrink:0">3</span>
+        <p style="font-size:13px;color:#26215C;line-height:1.5;margin:0"><strong>Expand:</strong> Post-upgrade unlock screen + monthly report card. Consider annual Teachable Wrapped.</p>
+      </div>
+    </div>
+  `;
+  renderDDFormat();
+}
+</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
