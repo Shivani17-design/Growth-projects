@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Course Outline Generator — Teachable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ── Design Tokens ───────────────────────────────────────────── */
+:root {
+  --green-dark:   #0B402B;
+  --green-mid:    #1a6b49;
+  --green-light:  #e8f5ee;
+  --lemon:        #E8FF47;
+  --lemon-dim:    rgba(232,255,71,0.18);
+  --lemon-dark:   #c8dd00;
+  --black:        #0d0d0d;
+  --gray-900:     #1a1a1a;
+  --gray-700:     #3d3d3d;
+  --gray-500:     #717171;
+  --gray-300:     #c4c4c4;
+  --gray-100:     #f2f2f2;
+  --white:        #ffffff;
+  --border:       #e4e4e4;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.1);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,.14);
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    20px;
+  --font:         'Inter', -apple-system, sans-serif;
+}
+
+/* ── Reset ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: var(--font); -webkit-font-smoothing: antialiased; font-size: 15px; }
+body { background: var(--gray-100); color: var(--black); min-height: 100vh; overflow-x: hidden; }
+/* When loaded inside an iframe, inherit page bg */
+body.in-iframe { background: transparent; }
+button { cursor: pointer; border: none; background: none; font-family: var(--font); }
+input  { font-family: var(--font); }
+
+/* ── Wrapper ─────────────────────────────────────────────────── */
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+/* ── STEP 1: Input ───────────────────────────────────────────── */
+#step-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 0 32px;
+  text-align: center;
+}
+
+.badge-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--lemon);
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+.badge-ai::before { content: '✦'; font-size: 10px; }
+
+.step-input-headline {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--black);
+  max-width: 540px;
+  margin-bottom: 10px;
+}
+.step-input-headline span { color: var(--green-dark); }
+
+.step-input-sub {
+  color: var(--gray-500);
+  font-size: .95rem;
+  margin-bottom: 36px;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+/* Input card */
+.input-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+}
+
+.input-label {
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.input-wrap input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 1rem;
+  color: var(--black);
+  outline: none;
+  transition: border-color .2s;
+  background: var(--gray-100);
+}
+.input-wrap input:focus {
+  border-color: var(--green-dark);
+  background: var(--white);
+}
+.input-wrap input::placeholder { color: var(--gray-300); }
+
+.audience-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.aud-btn {
+  padding: 7px 14px;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  background: var(--white);
+  transition: all .15s;
+}
+.aud-btn.active, .aud-btn:hover {
+  border-color: var(--green-dark);
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.btn-generate {
+  width: 100%;
+  padding: 16px;
+  background: var(--green-dark);
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: background .2s, transform .1s;
+  letter-spacing: .01em;
+}
+.btn-generate:hover { background: var(--green-mid); }
+.btn-generate:active { transform: scale(.99); }
+
+.examples-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  align-items: center;
+}
+.examples-label { font-size: .78rem; color: var(--gray-500); font-weight: 500; }
+.example-chip {
+  padding: 5px 12px;
+  background: var(--gray-100);
+  border-radius: 100px;
+  font-size: .8rem;
+  color: var(--gray-700);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+}
+.example-chip:hover {
+  background: var(--lemon);
+  border-color: var(--lemon-dark);
+  color: var(--green-dark);
+}
+
+/* ── STEP 2: Generating ──────────────────────────────────────── */
+#step-generating {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  min-height: 420px;
+  text-align: center;
+}
+
+.gen-orbit {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--green-light);
+  border-top-color: var(--green-dark);
+  animation: spin 1s linear infinite;
+  margin-bottom: 28px;
+  position: relative;
+}
+.gen-orbit::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 20px; height: 20px;
+  background: var(--lemon);
+  border-radius: 50%;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.gen-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: var(--black);
+}
+
+.gen-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  min-width: 280px;
+}
+.gen-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: .9rem;
+  color: var(--gray-500);
+  transition: color .3s;
+}
+.gen-step.done { color: var(--green-dark); font-weight: 500; }
+.gen-step.active { color: var(--black); font-weight: 500; }
+.gen-step-icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  transition: all .3s;
+}
+.gen-step.done .gen-step-icon {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: var(--white);
+}
+.gen-step.active .gen-step-icon {
+  border-color: var(--green-dark);
+  animation: pulse-border 1s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11,64,43,.4); }
+  50% { box-shadow: 0 0 0 5px rgba(11,64,43,0); }
+}
+
+/* ── STEP 3: Course Preview ──────────────────────────────────── */
+#step-preview {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  padding: 32px 0 0;
+}
+
+/* Course Hero */
+.course-hero {
+  background: var(--green-dark);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 32px 32px 28px;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+.course-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 220px; height: 220px;
+  background: rgba(232,255,71,.07);
+  border-radius: 50%;
+}
+.course-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--lemon);
+  color: var(--green-dark);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 14px;
+}
+.course-hero-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.course-hero-sub {
+  font-size: .9rem;
+  color: rgba(255,255,255,.72);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.course-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .82rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.85);
+}
+.course-meta-item .meta-icon { font-size: 14px; }
+
+/* Curriculum */
+.curriculum-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  position: relative;
+}
+
+.curriculum-header {
+  padding: 20px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.curriculum-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--black);
+}
+.curriculum-header-meta {
+  font-size: .82rem;
+  color: var(--gray-500);
+}
+
+/* Sections */
+.section-block { border-bottom: 1px solid var(--border); }
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.section-header:hover { background: var(--gray-100); }
+.section-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-number {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--black);
+}
+.section-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-count {
+  font-size: .78rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+.section-chevron {
+  font-size: 12px;
+  color: var(--gray-500);
+  transition: transform .25s;
+}
+.section-block.open .section-chevron { transform: rotate(180deg); }
+
+.lesson-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease;
+}
+.section-block.open .lesson-list { max-height: 500px; }
+
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 28px 10px 52px;
+  border-top: 1px solid var(--border);
+  background: var(--gray-100);
+  transition: background .15s;
+}
+.lesson-item:hover { background: #eaeaea; }
+.lesson-type-icon {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.lesson-type-icon.video   { background: #e8f0fe; }
+.lesson-type-icon.quiz    { background: #fce8ff; }
+.lesson-type-icon.file    { background: #e8fff2; }
+.lesson-type-icon.assign  { background: #fff5e8; }
+
+.lesson-name {
+  flex: 1;
+  font-size: .85rem;
+  color: var(--gray-700);
+}
+.lesson-duration {
+  font-size: .78rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+/* Blur overlay */
+.blur-overlay {
+  position: relative;
+  pointer-events: none;
+}
+.blur-overlay::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 180px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.97));
+  z-index: 2;
+}
+
+/* CTA sticky bar */
+.cta-bar {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+}
+.cta-bar-text .cta-bar-headline {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 2px;
+}
+.cta-bar-text .cta-bar-sub {
+  font-size: .8rem;
+  color: var(--gray-500);
+}
+.btn-trial {
+  padding: 13px 24px;
+  background: var(--green-dark);
+  color: var(--white);
+  font-size: .9rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  transition: background .2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-trial:hover { background: var(--green-mid); }
+.btn-trial::after { content: '→'; }
+
+/* Restart link */
+.restart-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: .82rem;
+  color: var(--gray-500);
+}
+.restart-link button {
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: underline;
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+/* ── Modal ───────────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  width: 100%;
+  max-width: 460px;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 20px;
+  font-size: 20px;
+  color: var(--gray-500);
+  cursor: pointer;
+  line-height: 1;
+  background: none;
+  border: none;
+}
+.modal-close:hover { color: var(--black); }
+
+.modal-icon {
+  width: 52px; height: 52px;
+  background: var(--lemon);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  margin-bottom: 18px;
+}
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--black);
+  margin-bottom: 6px;
+}
+.modal-sub {
+  font-size: .88rem;
+  color: var(--gray-500);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.modal-course-preview {
+  background: var(--green-dark);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-course-preview .preview-icon {
+  font-size: 20px;
+}
+.modal-course-preview .preview-text {
+  flex: 1;
+}
+.modal-course-preview .preview-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 2px;
+}
+.modal-course-preview .preview-meta {
+  font-size: .75rem;
+  color: rgba(255,255,255,.65);
+}
+
+.modal-benefits {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.modal-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: .86rem;
+  color: var(--gray-700);
+}
+.modal-benefits li::before {
+  content: '✓';
+  color: var(--green-dark);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.modal-input-group input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: .9rem;
+  color: var(--black);
+  outline: none;
+  transition: border-color .2s;
+  background: var(--gray-100);
+}
+.modal-input-group input:focus {
+  border-color: var(--green-dark);
+  background: var(--white);
+}
+.modal-input-group input::placeholder { color: var(--gray-300); }
+
+.btn-modal-cta {
+  padding: 12px 20px;
+  background: var(--green-dark);
+  color: var(--white);
+  font-size: .9rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  transition: background .2s;
+}
+.btn-modal-cta:hover { background: var(--green-mid); }
+
+.modal-signin {
+  text-align: center;
+  font-size: .8rem;
+  color: var(--gray-500);
+  margin-top: 8px;
+}
+.modal-signin a {
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── STEP 4: Success ─────────────────────────────────────────── */
+#step-success {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  text-align: center;
+}
+.success-icon {
+  width: 72px; height: 72px;
+  background: var(--lemon);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.success-sub {
+  color: var(--gray-500);
+  font-size: .9rem;
+  line-height: 1.6;
+  max-width: 360px;
+  margin-bottom: 28px;
+}
+.success-dashboard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-lg);
+  text-align: left;
+}
+.dashboard-topbar {
+  background: var(--gray-900);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dashboard-topbar .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.dashboard-topbar .dot.red    { background: #ff5f57; }
+.dashboard-topbar .dot.yellow { background: #febc2e; }
+.dashboard-topbar .dot.green  { background: #28c840; }
+.dashboard-url {
+  flex: 1;
+  background: rgba(255,255,255,.1);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: .7rem;
+  color: rgba(255,255,255,.6);
+  font-family: monospace;
+}
+.dashboard-body {
+  display: flex;
+  min-height: 220px;
+}
+.dashboard-sidebar {
+  width: 48px;
+  background: var(--gray-900);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 14px;
+}
+.sidebar-icon {
+  width: 28px; height: 28px;
+  background: rgba(255,255,255,.08);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.sidebar-icon.active { background: var(--lemon); }
+.dashboard-main {
+  flex: 1;
+  padding: 20px;
+}
+.dash-course-card {
+  background: var(--green-light);
+  border: 1px solid rgba(11,64,43,.15);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dash-course-title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 2px;
+}
+.dash-course-meta {
+  font-size: .72rem;
+  color: var(--green-mid);
+}
+.dash-badge-new {
+  background: var(--lemon);
+  color: var(--green-dark);
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+.dash-empty-state {
+  color: var(--gray-300);
+  font-size: .78rem;
+  line-height: 1.6;
+}
+
+.btn-open-product {
+  padding: 14px 28px;
+  background: var(--green-dark);
+  color: var(--white);
+  font-size: .95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: background .2s;
+  margin-top: 20px;
+}
+.btn-open-product:hover { background: var(--green-mid); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .step-input-headline { font-size: 1.7rem; }
+  .input-card { padding: 20px; }
+  .course-hero { padding: 24px 20px; }
+  .curriculum-header, .section-header { padding-left: 20px; padding-right: 20px; }
+  .lesson-item { padding-left: 36px; }
+  .cta-bar { flex-direction: column; align-items: stretch; }
+  .btn-trial { justify-content: center; }
+  .modal { padding: 24px; }
+  .modal-input-group { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── STEP 1: Input ──────────────────────────────────────── -->
+  <section id="step-input">
+    <span class="badge-ai">AI Course Builder</span>
+    <h1 class="step-input-headline">Turn your expertise into a<br><span>structured course</span> — instantly.</h1>
+    <p class="step-input-sub">Type any topic and watch AI build a complete course outline in seconds. No blank-page panic, no guesswork.</p>
+
+    <div class="input-card">
+      <label class="input-label">What do you want to teach?</label>
+      <div class="input-wrap">
+        <input id="topic-input" type="text" placeholder="e.g. Beginner Photography, Python for Data Science…" />
+      </div>
+
+      <label class="input-label" style="margin-bottom:8px;">Who is this for?</label>
+      <div class="audience-row" id="audience-row">
+        <button class="aud-btn active" data-level="beginners">Beginners</button>
+        <button class="aud-btn" data-level="intermediate learners">Intermediate</button>
+        <button class="aud-btn" data-level="advanced practitioners">Advanced</button>
+      </div>
+
+      <button class="btn-generate" id="btn-generate">Generate My Course Outline</button>
+
+      <div class="examples-row">
+        <span class="examples-label">Try:</span>
+        <button class="example-chip" data-topic="iPhone Photography">iPhone Photography</button>
+        <button class="example-chip" data-topic="Email Marketing">Email Marketing</button>
+        <button class="example-chip" data-topic="Mindfulness & Meditation">Mindfulness</button>
+        <button class="example-chip" data-topic="Python for Beginners">Python</button>
+        <button class="example-chip" data-topic="Sourdough Baking">Sourdough Baking</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STEP 2: Generating ─────────────────────────────────── -->
+  <section id="step-generating">
+    <div class="gen-orbit"></div>
+    <p class="gen-title">Building your course outline…</p>
+    <div class="gen-steps">
+      <div class="gen-step" id="gs-1"><div class="gen-step-icon">1</div> Analyzing your topic</div>
+      <div class="gen-step" id="gs-2"><div class="gen-step-icon">2</div> Structuring course sections</div>
+      <div class="gen-step" id="gs-3"><div class="gen-step-icon">3</div> Crafting lesson sequence</div>
+      <div class="gen-step" id="gs-4"><div class="gen-step-icon">4</div> Adding learning objectives</div>
+      <div class="gen-step" id="gs-5"><div class="gen-step-icon">5</div> Finalizing your outline</div>
+    </div>
+  </section>
+
+  <!-- ── STEP 3: Preview ────────────────────────────────────── -->
+  <section id="step-preview">
+    <!-- Hero -->
+    <div class="course-hero">
+      <div class="course-hero-badge">✦ AI Generated</div>
+      <div class="course-hero-title" id="preview-title">Complete iPhone Photography</div>
+      <div class="course-hero-sub" id="preview-subtitle">Master composition, lighting, and editing to take stunning photos with the camera in your pocket.</div>
+      <div class="course-meta" id="preview-meta">
+        <div class="course-meta-item"><span class="meta-icon">📚</span> <span id="meta-sections">5 sections</span></div>
+        <div class="course-meta-item"><span class="meta-icon">🎬</span> <span id="meta-lessons">22 lessons</span></div>
+        <div class="course-meta-item"><span class="meta-icon">⏱️</span> <span id="meta-duration">4h 30m</span></div>
+        <div class="course-meta-item"><span class="meta-icon">👥</span> <span id="meta-level">Beginners</span></div>
+      </div>
+    </div>
+
+    <!-- Curriculum -->
+    <div class="curriculum-wrap">
+      <div class="curriculum-header">
+        <span class="curriculum-header-title">Course Curriculum</span>
+        <span class="curriculum-header-meta" id="curriculum-summary">5 sections • 22 lessons</span>
+      </div>
+      <div class="blur-overlay" id="sections-container">
+        <!-- sections injected here -->
+      </div>
+    </div>
+
+    <!-- CTA Bar -->
+    <div class="cta-bar">
+      <div class="cta-bar-text">
+        <div class="cta-bar-headline">Your course outline is ready 🎉</div>
+        <div class="cta-bar-sub">Start a free trial to unlock, edit, and publish your course.</div>
+      </div>
+      <button class="btn-trial" id="btn-open-trial">Start Free Trial</button>
+    </div>
+
+    <div class="restart-link">
+      Not what you wanted? <button id="btn-restart">Generate a different course</button>
+    </div>
+  </section>
+
+  <!-- ── STEP 4: Success ────────────────────────────────────── -->
+  <section id="step-success">
+    <div class="success-icon">🎉</div>
+    <h2 class="success-title">Your course is live in Teachable!</h2>
+    <p class="success-sub">We've replicated your full course outline into your account. Add content, set a price, and launch to students.</p>
+
+    <div class="success-dashboard">
+      <div class="dashboard-topbar">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+        <div class="dashboard-url">app.teachable.com/courses</div>
+      </div>
+      <div class="dashboard-body">
+        <div class="dashboard-sidebar">
+          <div class="sidebar-icon">🏠</div>
+          <div class="sidebar-icon active">📚</div>
+          <div class="sidebar-icon">💬</div>
+          <div class="sidebar-icon">💰</div>
+        </div>
+        <div class="dashboard-main">
+          <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);margin-bottom:10px;">My Courses</p>
+          <div class="dash-course-card">
+            <div>
+              <div class="dash-course-title" id="success-course-title">Complete iPhone Photography</div>
+              <div class="dash-course-meta" id="success-course-meta">5 sections · 22 lessons · Draft</div>
+            </div>
+            <div class="dash-badge-new">NEW</div>
+          </div>
+          <div class="dash-empty-state">Course outline imported ✓<br>Add your first video lesson to get started.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-open-product" id="btn-open-product">Open in Teachable →</button>
+  </section>
+
+</div><!-- /.app -->
+
+<!-- ── MODAL ──────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-icon">🚀</div>
+    <h2 class="modal-title">Start your free trial</h2>
+    <p class="modal-sub">Your course outline will be waiting in your Teachable account — ready to add content and publish.</p>
+
+    <div class="modal-course-preview">
+      <div class="preview-icon">📘</div>
+      <div class="preview-text">
+        <div class="preview-title" id="modal-course-title">Complete iPhone Photography</div>
+        <div class="preview-meta" id="modal-course-meta">5 sections · 22 lessons · Will be imported to your account</div>
+      </div>
+    </div>
+
+    <ul class="modal-benefits">
+      <li>Full course outline replicated in your dashboard</li>
+      <li>Add videos, quizzes, and downloads to each lesson</li>
+      <li>Set pricing and sell to students worldwide</li>
+      <li>No credit card required for your 14-day trial</li>
+    </ul>
+
+    <div class="modal-input-group">
+      <input type="email" id="modal-email" placeholder="Enter your email address" />
+      <button class="btn-modal-cta" id="btn-modal-submit">Start Free Trial</button>
+    </div>
+    <p class="modal-signin">Already have an account? <a href="#">Sign in</a></p>
+  </div>
+</div>
+
+<!-- ── Script ─────────────────────────────────────────────────── -->
+<script>
+/* ─── Iframe awareness ───────────────────────────────────────── */
+const IN_IFRAME = window.self !== window.top;
+if (IN_IFRAME) document.body.classList.add('in-iframe');
+
+function scrollTop() {
+  if (IN_IFRAME) {
+    window.parent.postMessage({ type: 'teachable-cog-scroll-top' }, '*');
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// Report content height to parent so iframe auto-resizes
+function reportHeight() {
+  if (!IN_IFRAME) return;
+  window.parent.postMessage({
+    type: 'teachable-cog-height',
+    height: document.body.scrollHeight
+  }, '*');
+}
+if (IN_IFRAME) {
+  const ro = new ResizeObserver(reportHeight);
+  ro.observe(document.body);
+  reportHeight();
+}
+
+/* ─── Course generation data ─────────────────────────────────── */
+const LESSON_ICONS = { video: '🎬', quiz: '📝', file: '📄', assign: '✏️' };
+
+const TOPIC_TEMPLATES = [
+  /* ── Photography / Visual Arts ── */
+  {
+    keywords: ['photo','camera','iphone','portrait','lightroom','videograph'],
+    generate: (topic, level) => ({
+      title: `Complete ${toTitle(topic)}: From Auto to Artful`,
+      subtitle: `Master composition, lighting, and editing to take stunning photos that stop the scroll.`,
+      sections: [
+        { name: 'Photography Fundamentals', lessons: [
+          { name: 'Welcome & What You\'ll Create', type:'video', dur:'5 min' },
+          { name: 'Understanding Light: The Photographer\'s Superpower', type:'video', dur:'18 min' },
+          { name: 'Composition Rules (and When to Break Them)', type:'video', dur:'14 min' },
+          { name: 'Gear Checklist for ' + toTitle(topic), type:'file', dur:'PDF' },
+        ]},
+        { name: 'Mastering Your Camera Settings', lessons: [
+          { name: 'Aperture, Shutter Speed & ISO Explained', type:'video', dur:'20 min' },
+          { name: 'Shooting in Manual Mode for the First Time', type:'video', dur:'15 min' },
+          { name: 'White Balance & Color Temperature', type:'video', dur:'11 min' },
+          { name: 'Settings Quiz: Test Your Knowledge', type:'quiz', dur:'5 min' },
+        ]},
+        { name: 'Shooting in the Real World', lessons: [
+          { name: 'Golden Hour & Blue Hour Photography', type:'video', dur:'16 min' },
+          { name: 'Indoor & Low-Light Techniques', type:'video', dur:'18 min' },
+          { name: 'Portrait vs. Landscape: Adapting Your Style', type:'video', dur:'12 min' },
+          { name: 'Assignment: Shoot a 3-Photo Story', type:'assign', dur:'30 min' },
+        ]},
+        { name: 'Editing Like a Pro', lessons: [
+          { name: 'Lightroom / Mobile Edit Workflow', type:'video', dur:'22 min' },
+          { name: 'Colour Grading Your Signature Preset', type:'video', dur:'17 min' },
+          { name: 'Batch Editing & Exporting for Social', type:'video', dur:'10 min' },
+        ]},
+        { name: 'Building Your Photography Brand', lessons: [
+          { name: 'Creating a Consistent Visual Style', type:'video', dur:'14 min' },
+          { name: 'Portfolio Building: What to Include', type:'video', dur:'12 min' },
+          { name: 'Getting Your First Paid Clients', type:'video', dur:'18 min' },
+          { name: 'Your 30-Day Photography Challenge', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  },
+  /* ── Fitness / Yoga / Wellness ── */
+  {
+    keywords: ['yoga','fitness','workout','exercise','pilates','meditation','mindful','wellness','health','strength','run'],
+    generate: (topic, level) => ({
+      title: `${toTitle(topic)} for ${cap(level)}: Transform in 30 Days`,
+      subtitle: `A step-by-step program designed to build lasting habits and real results — no experience required.`,
+      sections: [
+        { name: 'Getting Started Safely', lessons: [
+          { name: 'Welcome & Your 30-Day Roadmap', type:'video', dur:'8 min' },
+          { name: 'Setting Up Your Practice Space', type:'video', dur:'6 min' },
+          { name: 'Essential Equipment & What to Skip', type:'file', dur:'PDF' },
+          { name: 'Listening to Your Body: Modifications Guide', type:'video', dur:'10 min' },
+        ]},
+        { name: 'Core Foundations', lessons: [
+          { name: 'Week 1: Building the Baseline', type:'video', dur:'20 min' },
+          { name: 'Form Over Speed: Common Mistakes Fixed', type:'video', dur:'15 min' },
+          { name: 'Breathing Techniques That Change Everything', type:'video', dur:'12 min' },
+          { name: 'Foundation Check Quiz', type:'quiz', dur:'5 min' },
+        ]},
+        { name: 'Progressive Training (Weeks 2–3)', lessons: [
+          { name: 'Level Up: Adding Intensity Safely', type:'video', dur:'18 min' },
+          { name: 'Full-Body Flow Sessions', type:'video', dur:'25 min' },
+          { name: 'Recovery & Rest Days Done Right', type:'video', dur:'12 min' },
+          { name: 'Midpoint Check-in Assignment', type:'assign', dur:'15 min' },
+        ]},
+        { name: 'Nutrition & Lifestyle Support', lessons: [
+          { name: 'Fueling Your Practice: Basic Nutrition', type:'video', dur:'16 min' },
+          { name: 'Sleep, Stress & Recovery', type:'video', dur:'13 min' },
+          { name: 'Meal Prep Guide for Active Weeks', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Beyond 30 Days: Making It a Lifestyle', lessons: [
+          { name: 'Week 4 Graduation Flow', type:'video', dur:'22 min' },
+          { name: 'Building Your Own Routine Going Forward', type:'video', dur:'14 min' },
+          { name: 'Community & Accountability Strategies', type:'video', dur:'10 min' },
+          { name: 'Your Ongoing Practice Planner', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  },
+  /* ── Business / Marketing / Entrepreneurship ── */
+  {
+    keywords: ['marketing','business','entrepreneur','sales','brand','seo','social media','email','copywrite','content','startup','freelan'],
+    generate: (topic, level) => ({
+      title: `${toTitle(topic)} Mastery: Build a Business That Sells`,
+      subtitle: `Proven frameworks to attract your audience, convert customers, and scale — without burning out.`,
+      sections: [
+        { name: 'Foundations & Mindset', lessons: [
+          { name: 'The Big Picture: What Actually Works in ' + toTitle(topic), type:'video', dur:'14 min' },
+          { name: 'Defining Your Niche & Ideal Customer', type:'video', dur:'16 min' },
+          { name: 'Setting 90-Day Revenue Goals', type:'assign', dur:'20 min' },
+        ]},
+        { name: 'Building Your Strategy', lessons: [
+          { name: 'The Core Framework Explained', type:'video', dur:'22 min' },
+          { name: 'Competitor Analysis: The Right Way', type:'video', dur:'15 min' },
+          { name: 'Positioning for Premium Pricing', type:'video', dur:'18 min' },
+          { name: 'Strategy Workbook', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Creating & Distributing Content', lessons: [
+          { name: 'Content Pillars That Drive Growth', type:'video', dur:'17 min' },
+          { name: 'Batching Content: 30 Days in 3 Hours', type:'video', dur:'20 min' },
+          { name: 'Platform-Specific Tactics', type:'video', dur:'18 min' },
+          { name: 'Content Calendar Template', type:'file', dur:'PDF' },
+          { name: 'Content Audit Quiz', type:'quiz', dur:'5 min' },
+        ]},
+        { name: 'Converting Followers into Customers', lessons: [
+          { name: 'Funnel Design for Non-Techies', type:'video', dur:'20 min' },
+          { name: 'Email List Building from Zero', type:'video', dur:'16 min' },
+          { name: 'Writing Sales Copy That Converts', type:'video', dur:'21 min' },
+          { name: 'Launch Your First Campaign', type:'assign', dur:'45 min' },
+        ]},
+        { name: 'Scaling & Automating', lessons: [
+          { name: 'Systems That Buy Back Your Time', type:'video', dur:'16 min' },
+          { name: 'Paid Ads: When & How to Start', type:'video', dur:'18 min' },
+          { name: 'Reading Your Analytics & Iterating', type:'video', dur:'13 min' },
+        ]},
+      ]
+    })
+  },
+  /* ── Coding / Tech ── */
+  {
+    keywords: ['python','javascript','code','program','web','app','software','data','ai','machine learning','sql','react','html','css','developer'],
+    generate: (topic, level) => ({
+      title: `${toTitle(topic)}: The Complete ${cap(level)} Bootcamp`,
+      subtitle: `Go from zero to job-ready with hands-on projects, real code, and industry best practices.`,
+      sections: [
+        { name: 'Setup & Core Concepts', lessons: [
+          { name: 'Welcome & What You\'ll Build', type:'video', dur:'8 min' },
+          { name: 'Setting Up Your Development Environment', type:'video', dur:'14 min' },
+          { name: 'Core Syntax & Fundamentals', type:'video', dur:'24 min' },
+          { name: 'Your First Program: Hello, World!', type:'assign', dur:'15 min' },
+        ]},
+        { name: 'Building Blocks', lessons: [
+          { name: 'Variables, Data Types & Operators', type:'video', dur:'20 min' },
+          { name: 'Control Flow: If, Loops & Functions', type:'video', dur:'25 min' },
+          { name: 'Working with Collections & Data Structures', type:'video', dur:'22 min' },
+          { name: 'Quiz: Core Fundamentals', type:'quiz', dur:'10 min' },
+        ]},
+        { name: 'Intermediate Patterns', lessons: [
+          { name: 'Object-Oriented Programming Demystified', type:'video', dur:'26 min' },
+          { name: 'Error Handling & Debugging Like a Pro', type:'video', dur:'18 min' },
+          { name: 'Working with APIs & External Data', type:'video', dur:'22 min' },
+          { name: 'Project 1: Build a Real-World Feature', type:'assign', dur:'60 min' },
+        ]},
+        { name: 'Real-World Projects', lessons: [
+          { name: 'Project Architecture & Planning', type:'video', dur:'16 min' },
+          { name: 'Project 2: End-to-End Application', type:'assign', dur:'90 min' },
+          { name: 'Code Reviews & Refactoring', type:'video', dur:'15 min' },
+          { name: 'Testing Your Code', type:'video', dur:'18 min' },
+        ]},
+        { name: 'Career & Next Steps', lessons: [
+          { name: 'Building Your Developer Portfolio', type:'video', dur:'14 min' },
+          { name: 'GitHub Best Practices', type:'video', dur:'12 min' },
+          { name: 'Getting Your First Role or Freelance Client', type:'video', dur:'18 min' },
+          { name: 'Resources & Roadmap PDF', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  },
+  /* ── Cooking / Baking / Food ── */
+  {
+    keywords: ['cook','bak','food','recipe','sourdough','pastry','bread','kitchen','meal','vegan','chef'],
+    generate: (topic, level) => ({
+      title: `The Art of ${toTitle(topic)}: A Complete Masterclass`,
+      subtitle: `Master the techniques, science, and creativity behind ${topic.toLowerCase()} — from first attempt to show-stopping results.`,
+      sections: [
+        { name: 'Kitchen Setup & Essential Techniques', lessons: [
+          { name: 'Welcome & Your Culinary Journey Ahead', type:'video', dur:'7 min' },
+          { name: 'Essential Tools & Ingredients', type:'video', dur:'12 min' },
+          { name: 'Knife Skills & Prep Fundamentals', type:'video', dur:'16 min' },
+          { name: 'Shopping Guide & Substitutions', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Core Recipes & Methods', lessons: [
+          { name: 'The Science Behind ' + toTitle(topic), type:'video', dur:'14 min' },
+          { name: 'Your First Recipe: Simple & Foolproof', type:'video', dur:'20 min' },
+          { name: 'Common Mistakes & How to Fix Them', type:'video', dur:'12 min' },
+          { name: 'Technique Quiz', type:'quiz', dur:'5 min' },
+        ]},
+        { name: 'Building Complexity & Flavor', lessons: [
+          { name: 'Flavor Layering & Seasoning', type:'video', dur:'16 min' },
+          { name: 'Intermediate Recipe: Level Up', type:'video', dur:'24 min' },
+          { name: 'Adapting Recipes to Dietary Needs', type:'video', dur:'13 min' },
+          { name: 'Practice Assignment: Cook & Share', type:'assign', dur:'60 min' },
+        ]},
+        { name: 'Advanced Creations', lessons: [
+          { name: 'Advanced Techniques Masterclass', type:'video', dur:'26 min' },
+          { name: 'Signature Recipe Development', type:'assign', dur:'90 min' },
+          { name: 'Plating & Presentation Secrets', type:'video', dur:'14 min' },
+        ]},
+        { name: 'Sharing & Going Further', lessons: [
+          { name: 'Storing, Gifting & Scaling Recipes', type:'video', dur:'11 min' },
+          { name: 'Starting a Food Business or Blog', type:'video', dur:'16 min' },
+          { name: 'Recipe Collection Workbook', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  },
+  /* ── Music / Instruments ── */
+  {
+    keywords: ['music','guitar','piano','sing','vocal','drum','bass','produc','beat','dj','chord'],
+    generate: (topic, level) => ({
+      title: `${toTitle(topic)}: Learn to Play & Sound Pro`,
+      subtitle: `Structured lessons that take you from first note to performing your own music — even if you've never played before.`,
+      sections: [
+        { name: 'Getting Started', lessons: [
+          { name: 'Welcome & What You\'ll Play by the End', type:'video', dur:'6 min' },
+          { name: 'Your Instrument: Setup & Care', type:'video', dur:'12 min' },
+          { name: 'Reading Music Basics (Tabs, Charts & Notation)', type:'video', dur:'15 min' },
+          { name: 'Gear & Apps Guide', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Core Technique', lessons: [
+          { name: 'Posture, Hand Position & Avoiding Injury', type:'video', dur:'13 min' },
+          { name: 'Your First 5 Notes / Chords', type:'video', dur:'18 min' },
+          { name: 'Rhythm & Timing Fundamentals', type:'video', dur:'16 min' },
+          { name: 'Technique Self-Assessment', type:'quiz', dur:'5 min' },
+        ]},
+        { name: 'Playing Real Music', lessons: [
+          { name: 'First Full Song Walkthrough', type:'video', dur:'22 min' },
+          { name: 'Learning Songs by Ear', type:'video', dur:'15 min' },
+          { name: 'Practice Routine Template', type:'file', dur:'PDF' },
+          { name: 'Assignment: Record Yourself Playing', type:'assign', dur:'20 min' },
+        ]},
+        { name: 'Music Theory for Practical Players', lessons: [
+          { name: 'Scales, Keys & Why They Matter', type:'video', dur:'18 min' },
+          { name: 'Chord Progressions That Sound Great', type:'video', dur:'20 min' },
+          { name: 'Improvisation & Making It Your Own', type:'video', dur:'16 min' },
+        ]},
+        { name: 'Performing & Sharing', lessons: [
+          { name: 'Performing Live: Nerves & Stage Presence', type:'video', dur:'14 min' },
+          { name: 'Recording at Home for Free', type:'video', dur:'16 min' },
+          { name: 'Building Your Musician Brand Online', type:'video', dur:'12 min' },
+        ]},
+      ]
+    })
+  },
+  /* ── Language Learning ── */
+  {
+    keywords: ['spanish','french','german','japanese','mandarin','language','english','italian','korean','portuguese','arabic'],
+    generate: (topic, level) => ({
+      title: `${toTitle(topic)} for ${cap(level)}: Speak with Confidence`,
+      subtitle: `A practical, conversation-first approach to becoming fluent without boring grammar drills.`,
+      sections: [
+        { name: 'The Language Learning Framework', lessons: [
+          { name: 'Why Most Learners Fail (And What You\'ll Do Differently)', type:'video', dur:'10 min' },
+          { name: 'Pronunciation Masterclass', type:'video', dur:'16 min' },
+          { name: '100 Essential Words to Start Today', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Everyday Conversations', lessons: [
+          { name: 'Greetings, Introductions & Small Talk', type:'video', dur:'18 min' },
+          { name: 'Numbers, Dates & Times', type:'video', dur:'14 min' },
+          { name: 'Ordering Food & Navigating Places', type:'video', dur:'17 min' },
+          { name: 'Conversation Practice Quiz', type:'quiz', dur:'10 min' },
+        ]},
+        { name: 'Grammar the Intuitive Way', lessons: [
+          { name: 'Sentence Structure Without Memorisation', type:'video', dur:'20 min' },
+          { name: 'Verb Tenses in Context', type:'video', dur:'22 min' },
+          { name: 'Common Mistakes & How Native Speakers Really Talk', type:'video', dur:'15 min' },
+          { name: 'Assignment: Write & Record a Monologue', type:'assign', dur:'25 min' },
+        ]},
+        { name: 'Immersion on Your Schedule', lessons: [
+          { name: 'Building a Daily Immersion Habit', type:'video', dur:'12 min' },
+          { name: 'Media, Music & Shows to Learn From', type:'video', dur:'14 min' },
+          { name: 'My Immersion Toolkit', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Conversational Fluency', lessons: [
+          { name: 'Finding Speaking Partners & Language Exchanges', type:'video', dur:'12 min' },
+          { name: 'Advanced Vocabulary Strategies', type:'video', dur:'18 min' },
+          { name: 'Your 6-Month Fluency Roadmap', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  },
+  /* ── Default / Generic ── */
+  {
+    keywords: [],
+    generate: (topic, level) => ({
+      title: `The Complete ${toTitle(topic)} Course`,
+      subtitle: `A structured, step-by-step journey for ${level} — from core concepts to real-world mastery.`,
+      sections: [
+        { name: 'Introduction & Foundations', lessons: [
+          { name: 'Welcome & Course Overview', type:'video', dur:'7 min' },
+          { name: 'The Core Principles of ' + toTitle(topic), type:'video', dur:'16 min' },
+          { name: 'Setting Yourself Up for Success', type:'video', dur:'11 min' },
+          { name: 'Starter Resources & Reading List', type:'file', dur:'PDF' },
+        ]},
+        { name: 'Core Skills & Concepts', lessons: [
+          { name: 'Deep Dive: Foundational Skill #1', type:'video', dur:'20 min' },
+          { name: 'Deep Dive: Foundational Skill #2', type:'video', dur:'18 min' },
+          { name: 'Common Challenges & How to Overcome Them', type:'video', dur:'14 min' },
+          { name: 'Module 1 Knowledge Check', type:'quiz', dur:'8 min' },
+        ]},
+        { name: 'Putting It Into Practice', lessons: [
+          { name: 'Your First Real-World Application', type:'video', dur:'22 min' },
+          { name: 'Case Study Walkthrough', type:'video', dur:'18 min' },
+          { name: 'Hands-On Assignment', type:'assign', dur:'45 min' },
+          { name: 'Feedback & Iteration', type:'video', dur:'12 min' },
+        ]},
+        { name: 'Advanced Techniques', lessons: [
+          { name: 'Leveling Up: Beyond the Basics', type:'video', dur:'24 min' },
+          { name: 'Expert Frameworks & Mental Models', type:'video', dur:'20 min' },
+          { name: 'Advanced Project', type:'assign', dur:'60 min' },
+        ]},
+        { name: 'Next Steps & Community', lessons: [
+          { name: 'Building on What You\'ve Learned', type:'video', dur:'13 min' },
+          { name: 'Connecting with the Community', type:'video', dur:'9 min' },
+          { name: 'Your Ongoing Learning Roadmap', type:'file', dur:'PDF' },
+        ]},
+      ]
+    })
+  }
+];
+
+/* ─── Helpers ────────────────────────────────────────────────── */
+function toTitle(str) {
+  return str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1));
+}
+function cap(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+function detectTemplate(topic) {
+  const t = topic.toLowerCase();
+  for (const tmpl of TOPIC_TEMPLATES) {
+    if (tmpl.keywords.some(k => t.includes(k))) return tmpl;
+  }
+  return TOPIC_TEMPLATES[TOPIC_TEMPLATES.length - 1]; // default
+}
+
+function calcTotals(sections) {
+  let totalLessons = 0;
+  let totalMinutes = 0;
+  sections.forEach(s => {
+    totalLessons += s.lessons.length;
+    s.lessons.forEach(l => {
+      const m = parseInt(l.dur);
+      if (!isNaN(m)) totalMinutes += m;
+    });
+  });
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  const durStr = h > 0 ? `${h}h ${m > 0 ? m + 'm' : ''}`.trim() : `${m}m`;
+  return { totalLessons, sections: sections.length, duration: durStr };
+}
+
+/* ─── State ──────────────────────────────────────────────────── */
+let currentCourse = null;
+let selectedLevel = 'beginners';
+
+/* ─── DOM refs ───────────────────────────────────────────────── */
+const stepInput      = document.getElementById('step-input');
+const stepGenerating = document.getElementById('step-generating');
+const stepPreview    = document.getElementById('step-preview');
+const stepSuccess    = document.getElementById('step-success');
+const modalBackdrop  = document.getElementById('modal-backdrop');
+
+function show(el) { el.style.display = 'flex'; }
+function hide(el) { el.style.display = 'none'; }
+
+/* ─── Audience buttons ───────────────────────────────────────── */
+document.querySelectorAll('.aud-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.aud-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedLevel = btn.dataset.level;
+  });
+});
+
+/* ─── Example chips ──────────────────────────────────────────── */
+document.querySelectorAll('.example-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('topic-input').value = chip.dataset.topic;
+    document.getElementById('topic-input').focus();
+  });
+});
+
+/* ─── Generate flow ──────────────────────────────────────────── */
+document.getElementById('btn-generate').addEventListener('click', startGeneration);
+document.getElementById('topic-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGeneration();
+});
+
+function startGeneration() {
+  const topic = document.getElementById('topic-input').value.trim();
+  if (!topic) {
+    document.getElementById('topic-input').focus();
+    document.getElementById('topic-input').style.borderColor = '#e55';
+    setTimeout(() => document.getElementById('topic-input').style.borderColor = '', 1200);
+    return;
+  }
+
+  // Generate course data immediately (used after animation)
+  const tmpl = detectTemplate(topic);
+  currentCourse = tmpl.generate(topic, selectedLevel);
+  currentCourse.level = selectedLevel;
+  currentCourse.topic = topic;
+
+  // Switch to generating
+  hide(stepInput);
+  show(stepGenerating);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Animate generation steps
+  const steps = ['gs-1','gs-2','gs-3','gs-4','gs-5'];
+  let i = 0;
+  const delays = [0, 700, 1300, 1900, 2400];
+
+  steps.forEach((id, idx) => {
+    setTimeout(() => {
+      // Mark previous as done
+      if (idx > 0) {
+        const prev = document.getElementById(steps[idx-1]);
+        prev.classList.remove('active');
+        prev.classList.add('done');
+        prev.querySelector('.gen-step-icon').textContent = '✓';
+      }
+      // Mark current as active
+      const curr = document.getElementById(id);
+      curr.classList.add('active');
+    }, delays[idx]);
+  });
+
+  // Complete after all steps
+  setTimeout(() => {
+    const last = document.getElementById(steps[steps.length-1]);
+    last.classList.remove('active');
+    last.classList.add('done');
+    last.querySelector('.gen-step-icon').textContent = '✓';
+
+    setTimeout(() => {
+      hide(stepGenerating);
+      renderPreview(currentCourse);
+      show(stepPreview);
+      scrollTop();
+      // Reset gen steps for next time
+      steps.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('done','active');
+        el.querySelector('.gen-step-icon').textContent = el.id.replace('gs-','');
+      });
+    }, 400);
+  }, 3000);
+}
+
+/* ─── Render preview ─────────────────────────────────────────── */
+function renderPreview(course) {
+  const totals = calcTotals(course.sections);
+
+  document.getElementById('preview-title').textContent = course.title;
+  document.getElementById('preview-subtitle').textContent = course.subtitle;
+  document.getElementById('meta-sections').textContent  = `${totals.sections} sections`;
+  document.getElementById('meta-lessons').textContent   = `${totals.totalLessons} lessons`;
+  document.getElementById('meta-duration').textContent  = totals.duration;
+  document.getElementById('meta-level').textContent     = cap(course.level);
+  document.getElementById('curriculum-summary').textContent = `${totals.sections} sections • ${totals.totalLessons} lessons`;
+
+  // Modal + success
+  document.getElementById('modal-course-title').textContent = course.title;
+  document.getElementById('modal-course-meta').textContent  = `${totals.sections} sections · ${totals.totalLessons} lessons · Will be imported to your account`;
+  document.getElementById('success-course-title').textContent = course.title;
+  document.getElementById('success-course-meta').textContent = `${totals.sections} sections · ${totals.totalLessons} lessons · Draft`;
+
+  // Build sections
+  const container = document.getElementById('sections-container');
+  container.innerHTML = '';
+
+  course.sections.forEach((sec, si) => {
+    const block = document.createElement('div');
+    block.className = 'section-block' + (si < 2 ? ' open' : '');
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `
+      <div class="section-left">
+        <div class="section-number">${si + 1}</div>
+        <div class="section-name">${sec.name}</div>
+      </div>
+      <div class="section-right">
+        <span class="section-count">${sec.lessons.length} lessons</span>
+        <span class="section-chevron">▾</span>
+      </div>`;
+    header.addEventListener('click', () => block.classList.toggle('open'));
+
+    const lessonList = document.createElement('div');
+    lessonList.className = 'lesson-list';
+
+    sec.lessons.forEach(lesson => {
+      const li = document.createElement('div');
+      li.className = 'lesson-item';
+      const icon = LESSON_ICONS[lesson.type] || '🎬';
+      li.innerHTML = `
+        <div class="lesson-type-icon ${lesson.type}">${icon}</div>
+        <div class="lesson-name">${lesson.name}</div>
+        <div class="lesson-duration">${lesson.dur}</div>`;
+      lessonList.appendChild(li);
+    });
+
+    block.appendChild(header);
+    block.appendChild(lessonList);
+    container.appendChild(block);
+  });
+}
+
+/* ─── CTA buttons ────────────────────────────────────────────── */
+document.getElementById('btn-open-trial').addEventListener('click', () => {
+  modalBackdrop.classList.add('open');
+  document.getElementById('modal-email').focus();
+});
+document.getElementById('modal-close').addEventListener('click', () => {
+  modalBackdrop.classList.remove('open');
+});
+modalBackdrop.addEventListener('click', e => {
+  if (e.target === modalBackdrop) modalBackdrop.classList.remove('open');
+});
+
+document.getElementById('btn-modal-submit').addEventListener('click', handleSignup);
+document.getElementById('modal-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSignup();
+});
+
+function handleSignup() {
+  const email = document.getElementById('modal-email').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('modal-email').style.borderColor = '#e55';
+    document.getElementById('modal-email').placeholder = 'Please enter a valid email';
+    setTimeout(() => {
+      document.getElementById('modal-email').style.borderColor = '';
+      document.getElementById('modal-email').placeholder = 'Enter your email address';
+    }, 1800);
+    return;
+  }
+  modalBackdrop.classList.remove('open');
+  hide(stepPreview);
+  show(stepSuccess);
+  scrollTop();
+}
+
+/* ─── Restart ────────────────────────────────────────────────── */
+document.getElementById('btn-restart').addEventListener('click', restart);
+function restart() {
+  hide(stepPreview);
+  hide(stepSuccess);
+  document.getElementById('topic-input').value = '';
+  document.getElementById('modal-email').value = '';
+  show(stepInput);
+  scrollTop();
+}
+
+document.getElementById('btn-open-product').addEventListener('click', () => {
+  alert('In the real product, this would open app.teachable.com with the course pre-loaded.');
+});
+</script>
+</body>
+</html>
