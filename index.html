@@ -87,10 +87,22 @@ h1{font-family:'Fraunces',serif;font-weight:700;font-size:28px;color:#26215C;mar
 </style>
 </head>
 <body>
+<div id="pw-gate" style="min-height:100vh;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border:1px solid #ebe9e3;border-radius:12px;padding:2.5rem;max-width:380px;width:100%;text-align:center">
+    <h1 style="font-family:'Fraunces',serif;font-weight:700;font-size:24px;color:#26215C;margin-bottom:8px">Growth opportunity board</h1>
+    <p style="font-size:14px;color:#888780;margin-bottom:1.5rem">Enter the password to view this board</p>
+    <input type="password" id="pw-input" placeholder="Password" style="width:100%;padding:10px 14px;border:1px solid #D3D1C7;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:12px;outline:none" onkeydown="if(event.key==='Enter')checkPw()">
+    <button onclick="checkPw()" style="width:100%;padding:10px;border-radius:8px;background:#534AB7;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">View board</button>
+    <p id="pw-error" style="font-size:13px;color:#E24B4A;margin-top:10px;display:none">Incorrect password</p>
+  </div>
+</div>
+
+<div id="board-content" style="display:none">
 <h1>Growth opportunity board</h1>
 <p class="subtitle">18 opportunities across 7 themes — filter by category to focus discussion</p>
 
 <div class="filters" id="filters"></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem" id="secondary-filters"></div>
 <div class="stats" id="stats"></div>
 <div class="cards" id="cards"></div>
 <p class="empty" id="empty">No opportunities match this filter.</p>
@@ -128,6 +140,8 @@ const themes=[
 ];
 
 let currentFilter="all";
+var effortFilter="all";
+var reachFilter="all";
 
 function dotClass(theme){const t=themes.find(x=>x.name===theme);return t?t.dot:"dot-feature";}
 function effortClass(e){const l=e.toLowerCase();if(l.includes("low"))return"tag-effort-low";if(l.includes("high"))return"tag-effort-high";return"tag-effort-medium";}
@@ -137,11 +151,29 @@ function buildFilters(){
   let html=`<button class="filter-btn active" data-filter="all">All themes</button>`;
   themes.forEach(t=>{html+=`<button class="filter-btn" data-filter="${t.name}"><span class="theme-dot ${t.dot}"></span>${t.label}</button>`;});
   document.getElementById("filters").innerHTML=html;
-  document.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{currentFilter=b.dataset.filter;document.querySelectorAll(".filter-btn").forEach(x=>x.classList.toggle("active",x.dataset.filter===currentFilter));render();}));
+  document.querySelectorAll("#filters .filter-btn").forEach(b=>b.addEventListener("click",()=>{currentFilter=b.dataset.filter;document.querySelectorAll("#filters .filter-btn").forEach(x=>x.classList.toggle("active",x.dataset.filter===currentFilter));render();}));
+
+  document.getElementById("secondary-filters").innerHTML=`
+    <span style="font-size:12px;color:#888780;line-height:28px">Effort:</span>
+    <button class="filter-btn sec-effort active" data-val="all" onclick="setEffort('all')">All</button>
+    <button class="filter-btn sec-effort" data-val="low" onclick="setEffort('low')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#639922;margin-right:4px"></span>Low</button>
+    <button class="filter-btn sec-effort" data-val="medium" onclick="setEffort('medium')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#BA7517;margin-right:4px"></span>Medium</button>
+    <button class="filter-btn sec-effort" data-val="high" onclick="setEffort('high')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#E24B4A;margin-right:4px"></span>High</button>
+    <span style="font-size:12px;color:#888780;line-height:28px;margin-left:12px">Reach:</span>
+    <button class="filter-btn sec-reach active" data-val="all" onclick="setReach('all')">All</button>
+    <button class="filter-btn sec-reach" data-val="large" onclick="setReach('large')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#534AB7;margin-right:4px"></span>Large</button>
+    <button class="filter-btn sec-reach" data-val="medium" onclick="setReach('medium')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#378ADD;margin-right:4px"></span>Medium</button>
+    <button class="filter-btn sec-reach" data-val="small" onclick="setReach('small')"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#888780;margin-right:4px"></span>Small</button>
+  `;
 }
 
+function setEffort(v){effortFilter=v;document.querySelectorAll('.sec-effort').forEach(b=>b.classList.toggle('active',b.dataset.val===v));render();}
+function setReach(v){reachFilter=v;document.querySelectorAll('.sec-reach').forEach(b=>b.classList.toggle('active',b.dataset.val===v));render();}
+
 function render(){
-  const filtered=currentFilter==="all"?data:data.filter(d=>d.theme===currentFilter);
+  var filtered=currentFilter==="all"?data.slice():data.filter(d=>d.theme===currentFilter);
+  if(effortFilter!=="all") filtered=filtered.filter(d=>d.effort.toLowerCase().includes(effortFilter));
+  if(reachFilter!=="all") filtered=filtered.filter(d=>d.reach&&d.reach.toLowerCase().includes(reachFilter));
   const lowCount=filtered.filter(d=>d.effort.toLowerCase().includes("low")).length;
   const largeCount=filtered.filter(d=>d.reach&&d.reach.toLowerCase().includes("large")).length;
   const themeCount=new Set(filtered.map(d=>d.theme)).size;
@@ -172,51 +204,49 @@ function render(){
         <span class="tag tag-neutral">${d.type}</span>
         <span class="tag tag-neutral">${d.goal}</span>
       </div>
+      <div class="opp-screenshots" data-opp="${d.opp}"></div>
       ${d.opp==="Feature adoption report card"?`
-      <div style="margin-top:14px;border-top:1px solid #ebe9e3;padding-top:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleDeepDive()">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:#D85A30;color:#fff;font-size:11px;font-weight:600;text-align:center;line-height:20px;">!</span>
-            <span style="font-size:13px;font-weight:600;color:#D85A30;">Concept exploration — competitor examples & mockups</span>
-          </div>
-          <span id="dd-chevron" style="font-size:16px;color:#D85A30;transition:transform .2s">▾</span>
+      <div style="margin-top:14px;border:2px solid #D85A30;border-radius:12px;padding:16px 20px;background:#FFF9F7;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="display:inline-block;padding:4px 12px;border-radius:999px;background:#D85A30;color:#fff;font-size:11px;font-weight:600;">Deep dive</span>
+          <span style="font-size:14px;font-weight:600;color:#D85A30;">Concept exploration — mockups & implementation</span>
         </div>
-        <div id="deep-dive" style="display:none;margin-top:14px"></div>
+        <div id="deep-dive"></div>
       </div>
       `:''}
-      <div class="opp-screenshots" data-opp="${d.opp}"></div>
     </div>
   `).join("");
 
   var oppScreenshots = {
     "Feature awareness during signup": [
-      {file:"teachable-signup.jpg",label:"Teachable — current sign-up flow"},
-      {file:"webflow-signup.jpg",label:"Webflow — sign-up page"},
+      {file:"img/teachable-signup.jpg",label:"Teachable — current sign-up flow"},
+      {file:"img/webflow-signup.jpg",label:"Webflow — sign-up page"},
     ],
     "Improving feature storytelling on marketing pages": [
-      {file:"figma-demo.jpg",label:"Figma — interactive product demo"},
+      {file:"img/figma-demo.jpg",label:"Figma — interactive product demo"},
     ],
     "Feature adoption report card": [
-      {file:"slack-feature-report.jpg",label:"Slack — Pro feature usage report"},
+      {file:"img/slack-feature-report.jpg",label:"Slack — Pro feature usage report"},
+      {file:"img/teachable-report-card-mockup.jpg",label:"Teachable — report card concept (in-product modal)"},
     ],
     "Post-upgrade onboarding": [
-      {file:"hubspot-explore.jpg",label:"HubSpot — Explore your features"},
-      {file:"asana-trial.jpg",label:"Asana — trial welcome screen"},
-      {file:"slack-pro-welcome.jpg",label:"Slack — Start with Slack Pro"},
-      {file:"canva-pro-welcome.jpg",label:"Canva — Welcome to Canva Pro"},
+      {file:"img/hubspot-explore.jpg",label:"HubSpot — Explore your features"},
+      {file:"img/asana-trial.jpg",label:"Asana — trial welcome screen"},
+      {file:"img/slack-pro-welcome.jpg",label:"Slack — Start with Slack Pro"},
+      {file:"img/canva-pro-welcome.jpg",label:"Canva — Welcome to Canva Pro"},
     ],
     "Goal-based onboarding questionnaire": [
-      {file:"gohighlevel-onboarding.jpg",label:"GoHighLevel — platform questionnaire"},
-      {file:"hubspot-tools.jpg",label:"HubSpot — What tools do you use"},
-      {file:"airtable-onboarding.jpg",label:"Airtable — goal-based onboarding"},
-      {file:"airtable-catalog.jpg",label:"Airtable — AI course catalog"},
+      {file:"img/gohighlevel-onboarding.jpg",label:"GoHighLevel — platform questionnaire"},
+      {file:"img/hubspot-tools.jpg",label:"HubSpot — What tools do you use"},
+      {file:"img/airtable-onboarding.jpg",label:"Airtable — goal-based onboarding"},
+      {file:"img/airtable-catalog.jpg",label:"Airtable — AI course catalog"},
     ],
     "Chatbot as product assistant": [
-      {file:"hubspot-chatbot.jpg",label:"HubSpot — chatbot sales agent"},
-      {file:"ai-chatbot.jpg",label:"AI chatbot — discovery assistant"},
+      {file:"img/hubspot-chatbot.jpg",label:"HubSpot — chatbot sales agent"},
+      {file:"img/ai-chatbot.jpg",label:"AI chatbot — discovery assistant"},
     ],
     "Feature discovery nudges": [
-      {file:"google-chat-nudge.jpg",label:"Google Chat — Find the perfect app"},
+      {file:"img/google-chat-nudge.jpg",label:"Google Chat — Find the perfect app"},
     ],
   };
   document.querySelectorAll('.opp-screenshots').forEach(function(el){
@@ -234,8 +264,7 @@ function render(){
     }
   });
 
-  if(document.getElementById('deep-dive') && !document.getElementById('deep-dive').dataset.loaded){
-    document.getElementById('deep-dive').dataset.loaded='1';
+  if(document.getElementById('deep-dive')){
     buildDeepDive();
   }
 }
@@ -401,13 +430,6 @@ renderCompetitors();
 var ddFormat=0;
 
 
-function toggleDeepDive(){
-  const dd=document.getElementById('deep-dive');
-  const ch=document.getElementById('dd-chevron');
-  if(dd.style.display==='none'){dd.style.display='block';ch.style.transform='rotate(180deg)';}
-  else{dd.style.display='none';ch.style.transform='rotate(0deg)';}
-}
-
 function setDDFormat(idx){
   ddFormat=idx;
   document.querySelectorAll('.dd-fmt-btn').forEach((b,j)=>{b.classList.toggle('active',j===idx);});
@@ -544,5 +566,22 @@ function buildDeepDive(){
 </div>
 </div>
 </div>
+</div>
+<script>
+var PW_HASH='a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
+async function sha256(str){var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function checkPw(){
+  var val=document.getElementById('pw-input').value;
+  var hash=await sha256(val);
+  if(hash===PW_HASH){
+    document.getElementById('pw-gate').style.display='none';
+    document.getElementById('board-content').style.display='block';
+  } else {
+    document.getElementById('pw-error').style.display='block';
+    document.getElementById('pw-input').style.borderColor='#E24B4A';
+    setTimeout(function(){document.getElementById('pw-error').style.display='none';document.getElementById('pw-input').style.borderColor='#D3D1C7';},2000);
+  }
+}
+</script>
 </body>
 </html>
